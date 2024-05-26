@@ -3,6 +3,7 @@ from aiokafka import AIOKafkaConsumer
 from motor.motor_asyncio import AsyncIOMotorClient
 import asyncio
 from asyncio import Semaphore
+from datetime import datetime
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -28,7 +29,7 @@ semaphore = Semaphore(5)  # Adjust the value as needed
 async def consume():
     consumer = AIOKafkaConsumer(
         'recommendations',
-        bootstrap_servers='0.0.0.0:9092',
+        bootstrap_servers='kafka:9092',
         group_id='recommendation_group')
     await consumer.start()
     try:
@@ -60,9 +61,8 @@ async def process_recommendation(uid: str):
             ]
 
             # Calculate processing time
-            request_time = recommendation["request_time"]
-            completion_time = recommendation.get("completion_time", datetime.utcnow())
-            processing_time = completion_time - request_time
+            request_time = recommendation["timestamp"]
+            processing_time = datetime.utcnow() - request_time
 
             # Update recommendation
             await collection.update_one(
@@ -84,10 +84,13 @@ async def process_recommendation(uid: str):
 
 
 async def main():
-    while True:
+    limit_errors = 4
+    error_count = 0
+    while True and error_count < limit_errors:
         try:
             await consume()
         except Exception as e:
+            error_count += 1
             logger.error(f"Fatal error in consumer loop: {e}")
             logger.info("Retrying consumer after a short delay...")
 

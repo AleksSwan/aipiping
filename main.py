@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field, ValidationError
 from motor.motor_asyncio import AsyncIOMotorClient
 from aiokafka import AIOKafkaProducer
-from datetime import datetime, timedelta
+from datetime import datetime
 import uvicorn
 
 app = FastAPI()
@@ -28,7 +28,7 @@ logger.addHandler(console_handler)
 logger.addHandler(file_handler)
 
 # MongoDB setup
-client = AsyncIOMotorClient('mongodb://0.0.0.0:27017')
+client = AsyncIOMotorClient('mongodb://mongo:27017')
 db = client.travel_recommendations
 collection = db.recommendations
 
@@ -50,7 +50,7 @@ class Lifespan:
 
     async def __aenter__(self):
         global producer
-        producer = AIOKafkaProducer(bootstrap_servers='0.0.0.0:9092')
+        producer = AIOKafkaProducer(bootstrap_servers='kafka:9092')
         await producer.start()
         logger.info("Kafka producer started")
 
@@ -101,7 +101,8 @@ async def create_recommendation(request: RecommendationRequest):
 async def get_recommendation(uid: str):
     try:
         logger.info(f'Retrieving recommendation for UID {uid}')
-        recommendation = await collection.find_one({"uid": uid})
+        logger.info(f'Found {collection.find_one({"uid": uid})}')
+        recommendation = await collection.find_one({"uid": uid}, projection={"_id": False})
     except Exception as e:
         logger.error(f"Error retrieving recommendation: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
