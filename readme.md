@@ -1,6 +1,6 @@
-# Travel Recommendations App
+# To Do Recommendations App
 
-This project is a scalable FastAPI application that serves an endpoint to recommend three things to do in a given country during a specific season by consulting the OpenAI API. The application integrates a distributed component for background processing to handle the OpenAI API calls asynchronously, stores the results in MongoDB, and signals completion. Docker Compose is used to manage the application components.
+This project is a scalable FastAPI application that serves an endpoint to recommend three things to do in a given country during a specific season by consulting the GROQ API. The application integrates a distributed component for background processing to handle the GROQ API calls asynchronously, stores the results in MongoDB, and signals completion. Docker Compose is used to manage the application components.
 
 ## Features
 
@@ -14,7 +14,7 @@ This project is a scalable FastAPI application that serves an endpoint to recomm
 ### Prerequisites
 
 - Docker and Docker Compose installed
-- Python 3.8+ installed
+- Python 3.11+ installed
 
 ### Initial Setup
 
@@ -38,7 +38,7 @@ source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
 pip install -r requirements.txt
 ```
 
-4. Set up environment variables for the GROQ API key and other secrets (https://wow.groq.com/why-groq/, yout can get api key after registration for free). Create a `.env` file in the root directory:
+4. Set up environment variables for the GROQ API key and other secrets (https://wow.groq.com/why-groq/, you can get api key after registration for free). Create a `.env` file in the root directory:
 
 ```env
 GROQ_API_KEY=your_groq_api_key
