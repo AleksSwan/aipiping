@@ -4,15 +4,14 @@ from datetime import datetime
 
 import pycountry
 import uvicorn
-from aiokafka import AIOKafkaProducer
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, ValidationError
 
-from producer import AbstractProducer, KafkaProducer
-from logger_configurator import LoggerConfigurator
 from errors import ProducerError
+from logger_configurator import LoggerConfigurator
+from producer import AbstractProducer, KafkaProducer
+from repository import AbstractRecommendationRepository, MongoRepository
 
 app = FastAPI()
 # allow requests from front-end
@@ -32,9 +31,11 @@ app.add_middleware(
 logger = LoggerConfigurator(name=__name__, log_file="api.log").configure()
 
 # MongoDB setup
-client = AsyncIOMotorClient("mongodb://mongo:27017")
-db = client.travel_recommendations
-collection = db.recommendations
+db_recommendations = MongoRepository(
+    uri="mongodb://mongodb:27017",
+    db_name="travel_recommendations",
+    collection_name="recommendations",
+)
 
 # Kafka setup
 try:
@@ -107,7 +108,7 @@ async def create_recommendation(request: RecommendationRequest):
         }
 
         # Store recommendation to MongoDB
-        await collection.insert_one(recommendation_data)
+        await db_recommendations.insert_one(recommendation_data)
 
         # Send recommendation to producer
         try:
@@ -136,7 +137,7 @@ async def create_recommendation(request: RecommendationRequest):
 async def get_recommendation(uid: str):
     try:
         logger.info(f"Retrieving recommendation for UID {uid}")
-        recommendation = await collection.find_one(
+        recommendation = await db_recommendations.find_one(
             {"uid": uid}, projection={"_id": False}
         )
         logger.info(f"Found {recommendation}")
@@ -148,7 +149,7 @@ async def get_recommendation(uid: str):
             logger.warning(f"Recommendation with UID {uid} not found")
             detail = {
                 "error": "UID not found",
-                "message": "The provided UID does not exist. Please check the UID and try again."
+                "message": "The provided UID does not exist. Please check the UID and try again.",
             }
             raise HTTPException(status_code=404, detail=detail)
         if recommendation["status"] == "pending":

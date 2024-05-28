@@ -8,6 +8,7 @@ import groq
 from aiokafka import AIOKafkaConsumer
 from aiokafka.errors import KafkaConnectionError, KafkaError
 from groq import AsyncGroq
+
 from logger_configurator import LoggerConfigurator
 from repository import AbstractRecommendationRepository, MongoRepository
 

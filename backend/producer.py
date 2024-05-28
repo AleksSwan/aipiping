@@ -3,11 +3,13 @@ from abc import ABC, abstractmethod
 
 from aiokafka import AIOKafkaProducer
 from aiokafka.errors import KafkaConnectionError, KafkaError
-from logger_configurator import LoggerConfigurator
+
 from errors import ProducerConnectionError, ProducerError
+from logger_configurator import LoggerConfigurator
 
 # Configure the logger
 logger = LoggerConfigurator(name=__name__).configure()
+
 
 class AbstractProducer(ABC):
     @abstractmethod

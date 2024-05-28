@@ -1,5 +1,6 @@
 import logging
 
+
 class LoggerConfigurator:
     def __init__(self, name, level=logging.INFO, log_file=None):
         self.name = name
