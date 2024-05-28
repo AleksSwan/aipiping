@@ -15,6 +15,10 @@ pycountry = "*"
 black = "*"
 isort = "*"
 groq = "*"
+pytest = "*"
+pytest-asyncio = "*"
+httpx = "*"
+pytest-mock = "*"
 
 [dev-packages]
 
