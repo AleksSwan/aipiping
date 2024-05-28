@@ -18,7 +18,7 @@ logger = LoggerConfigurator(name=__name__, log_file="worker.log").configure()
 # Semaphore to limit concurrent requests
 semaphore = Semaphore(5)  # Adjust the value as needed
 
-
+# MongoDB repository for recommendations
 db_recommendations = MongoRepository(
     uri="mongodb://mongodb:27017",
     db_name="travel_recommendations",
@@ -27,21 +27,33 @@ db_recommendations = MongoRepository(
 
 
 def groq_system_message():
+    """
+    Generate the system message for the Groq API request.
+    This message provides the instructions for the AI assistant.
+
+    :return: A list containing the system message.
+    """
     return [
         {
             "role": "system",
             "content": (
                 "You are a helpful tourist consultant. "
                 "You must recommend three things to do in a given country during a specific season. "
-                "You answer must be short and concise. "
+                "Your answer must be short and concise. "
                 "Don't use markdown in your answers. "
-                "Return answer in JSON format with recommendation number as dictionary key. "
+                "Return answer in JSON format with recommendation number as dictionary key."
             ),
         },
     ]
 
 
 async def generate_recommendations(prompt: str) -> dict:
+    """
+    Generate travel recommendations using the Groq API based on the given prompt.
+
+    :param prompt: The prompt to send to the Groq API.
+    :return: A dictionary containing the recommendations.
+    """
     client = AsyncGroq()
     messages = groq_system_message() + [{"role": "user", "content": prompt}]
     chat_completion = await client.chat.completions.create(
@@ -52,17 +64,22 @@ async def generate_recommendations(prompt: str) -> dict:
         stop=None,
         stream=False,
     )
-    recoomendations = chat_completion.choices[0].message.content
+    recommendations = chat_completion.choices[0].message.content
     try:
-        recoomendations = json.loads(recoomendations)
+        recommendations = json.loads(recommendations)
     except json.JSONDecodeError:
-        logger.error(f"Failed to parse recommendations: {recoomendations}")
-        recoomendations = {"1": recoomendations}
-    logger.info(f"Recommendations for {prompt}: {recoomendations}")
-    return recoomendations
+        logger.error(f"Failed to parse recommendations: {recommendations}")
+        recommendations = {"1": recommendations}
+    logger.info(f"Recommendations for {prompt}: {recommendations}")
+    return recommendations
 
 
 async def consume(db_recommendations: AbstractRecommendationRepository):
+    """
+    Consume messages from the Kafka topic and process recommendations.
+
+    :param db_recommendations: The repository to interact with the recommendations database.
+    """
     consumer = AIOKafkaConsumer(
         "recommendations",
         bootstrap_servers="kafka:9092",
@@ -80,6 +97,12 @@ async def consume(db_recommendations: AbstractRecommendationRepository):
 async def process_recommendation(
     uid: str, db_recommendations: AbstractRecommendationRepository
 ):
+    """
+    Process a single recommendation request by generating recommendations and updating the database.
+
+    :param uid: The unique identifier for the recommendation request.
+    :param db_recommendations: The repository to interact with the recommendations database.
+    """
     async with semaphore:  # Acquire semaphore before processing
         try:
             recommendation = await db_recommendations.find_one({"uid": uid})
@@ -87,17 +110,17 @@ async def process_recommendation(
                 logger.error(f"Recommendation with UID {uid} not found in database.")
                 return
 
-            # Request to API
+            # Generate recommendations
             country = recommendation.get("country")
             season = recommendation.get("season")
-            prompt = f"Give three things to do in a {country} during a {season}"
+            prompt = f"Give three things to do in {country} during {season}"
             recommendations = await generate_recommendations(prompt)
 
             # Calculate processing time
             request_time = recommendation["timestamp"]
             processing_time = datetime.utcnow() - request_time
 
-            # Update recommendation
+            # Update recommendation in the database
             await db_recommendations.update_one(
                 {"uid": uid},
                 {
@@ -129,6 +152,9 @@ async def process_recommendation(
 
 
 async def main():
+    """
+    Main function to start the Kafka consumer and handle errors.
+    """
     limit_errors = 5  # Number of errors before exiting
     error_count = 0
     logger.info(f"Starting worker with limit_errors = {limit_errors}")

@@ -13,8 +13,10 @@ from logger_configurator import LoggerConfigurator
 from producer import AbstractProducer, KafkaProducer
 from repository import AbstractRecommendationRepository, MongoRepository
 
+# Initialize FastAPI application
 app = FastAPI()
-# allow requests from front-end
+
+# Allow CORS requests from the front-end
 origins = [
     "http://localhost:8000",
 ]
@@ -26,7 +28,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # Configure the logger
 logger = LoggerConfigurator(name=__name__, log_file="api.log").configure()
 
@@ -37,11 +38,11 @@ db_recommendations = MongoRepository(
     collection_name="recommendations",
 )
 
-# Kafka setup
+# Producer setup
 try:
     producer: AbstractProducer = KafkaProducer(bootstrap_servers="kafka:9092")
 except Exception as e:
-    logger.error(f"Failed to connect to Kafka: {e}")
+    logger.error(f"Producer initialization failed: {e}")
     producer = None
 
 # Supported seasons
@@ -49,11 +50,20 @@ SUPPORTED_SEASONS = {"winter", "spring", "summer", "fall", "autumn"}
 
 
 class RecommendationRequest(BaseModel):
+    """
+    Data model for a recommendation request.
+    """
+
     country: str = Field(..., example="Canada")
     season: str = Field(..., example="winter")
 
 
 class Lifespan:
+    """
+    Lifespan management for the FastAPI application.
+    Ensures the producer is started and stopped with the application.
+    """
+
     def __init__(self, app: FastAPI):
         self.app = app
 
@@ -76,8 +86,14 @@ app.router.lifespan_context = Lifespan
 
 @app.post("/recommendations", status_code=202)
 async def create_recommendation(request: RecommendationRequest):
+    """
+    Endpoint to create a recommendation request.
+
+    :param request: RecommendationRequest object containing country and season.
+    :return: JSON response with the generated UID.
+    """
     try:
-        # Check country
+        # Validate country
         try:
             country = pycountry.countries.search_fuzzy(request.country)[0].name
             logger.info(f"Country '{request.country}' found: {country}")
@@ -88,7 +104,7 @@ async def create_recommendation(request: RecommendationRequest):
                 status_code=400, detail=f"Country '{request.country}' is not found."
             )
 
-        # Check season
+        # Validate season
         if request.season not in SUPPORTED_SEASONS:
             raise HTTPException(
                 status_code=400, detail=f"Season '{request.season}' is not supported."
@@ -135,6 +151,12 @@ async def create_recommendation(request: RecommendationRequest):
 
 @app.get("/recommendations/{uid}")
 async def get_recommendation(uid: str):
+    """
+    Endpoint to retrieve a recommendation by UID.
+
+    :param uid: Unique identifier for the recommendation.
+    :return: JSON response with the recommendation data.
+    """
     try:
         logger.info(f"Retrieving recommendation for UID {uid}")
         recommendation = await db_recommendations.find_one(
@@ -152,18 +174,18 @@ async def get_recommendation(uid: str):
                 "message": "The provided UID does not exist. Please check the UID and try again.",
             }
             raise HTTPException(status_code=404, detail=detail)
-        if recommendation["status"] == "pending":
+        elif recommendation["status"] == "pending":
             logger.info(f"Recommendation with UID {uid} is still pending")
-            return {
+            recommendation = {
                 "uid": uid,
                 "status": "pending",
                 "message": "The recommendations are not yet available. Please try again later.",
             }
-        if recommendation["status"] == "error":
+        elif recommendation["status"] == "error":
             logger.error(
                 f"Error occurred while processing recommendation with UID {uid}"
             )
-            return {
+            recommendation = {
                 "uid": uid,
                 "status": "error",
                 "message": "An error occurred while processing your request. Please try again later.",
@@ -174,4 +196,5 @@ async def get_recommendation(uid: str):
 
 
 if __name__ == "__main__":
+    # Run the FastAPI application with Uvicorn
     uvicorn.run(app, host="0.0.0.0", port=3000)
