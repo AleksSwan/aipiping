@@ -64,14 +64,14 @@ async def generate_recommendations(prompt: str) -> dict:
         stop=None,
         stream=False,
     )
-    recommendations = chat_completion.choices[0].message.content
+    recoomendations = chat_completion.choices[0].message.content
     try:
-        recommendations = json.loads(recommendations)
+        recoomendations = json.loads(recoomendations)
     except json.JSONDecodeError:
-        logger.error(f"Failed to parse recommendations: {recommendations}")
-        recommendations = {"1": recommendations}
-    logger.info(f"Recommendations for {prompt}: {recommendations}")
-    return recommendations
+        logger.error(f"Failed to parse recommendations: {recoomendations}")
+        recoomendations = {"1": recoomendations}
+    logger.info(f"Recommendations for {prompt}: {recoomendations}")
+    return recoomendations
 
 
 async def consume(db_recommendations: AbstractRecommendationRepository):
