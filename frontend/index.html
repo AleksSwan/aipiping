@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To Do Recommendations</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .recommendation {
+            margin-bottom: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">To Do Recommendations</h1>
+        <form id="recommendation-form" novalidate>
+            <div class="form-group">
+                <label for="country">Country</label>
+                <input type="text" class="form-control" id="country" placeholder="Enter country" required>
+                <div class="invalid-feedback">Please enter a country.</div>
+            </div>
+            <div class="form-group">
+                <label for="season">Season</label>
+                <select class="form-control" id="season" required>
+                    <option value="">Select season</option>
+                    <option value="spring">Spring</option>
+                    <option value="summer">Summer</option>
+                    <option value="autumn">Autumn</option>
+                    <option value="winter">Winter</option>
+                </select>
+                <div class="invalid-feedback">Please select a season.</div>
+            </div>
+            <button type="submit" id="request-recommendations" class="btn btn-primary">Get Recommendations</button>
+        </form>
+        <div id="status" class="mt-4"></div>
+        <div id="recommendations" class="mt-4"></div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
