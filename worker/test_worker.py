@@ -1,17 +1,13 @@
 import asyncio
 import json
-from unittest.mock import AsyncMock, patch
 from datetime import datetime
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from aiokafka.errors import KafkaConnectionError
 
-from worker import (
-    consume,
-    process_recommendation,
-    generate_recommendations,
-    db_recommendations,
-)
+from worker import (consume, db_recommendations, generate_recommendations,
+                    process_recommendation)
 
 
 @pytest.fixture
@@ -52,10 +48,16 @@ async def test_generate_recommendations(mock_groq_client):
     Test recommendation generation.
     """
     prompt = "Give three things to do in Canada during winter"
-    expected_recommendations = {"1": "Skiing in the Rockies", "2": "Visit Niagara Falls", "3": "Explore Quebec City"}
+    expected_recommendations = {
+        "1": "Skiing in the Rockies",
+        "2": "Visit Niagara Falls",
+        "3": "Explore Quebec City",
+    }
 
-    mock_groq_client().chat.completions.create.return_value.choices[0].message.content = json.dumps(expected_recommendations)
-    
+    mock_groq_client().chat.completions.create.return_value.choices[
+        0
+    ].message.content = json.dumps(expected_recommendations)
+
     recommendations = await generate_recommendations(prompt)
 
     assert recommendations == expected_recommendations
@@ -74,15 +76,19 @@ async def test_process_recommendation(mock_db_recommendations, mock_groq_client)
         "season": "winter",
         "timestamp": datetime.utcnow(),
         "status": "pending",
-        "recommendations": []
+        "recommendations": [],
     }
-    
+
     mock_db_recommendations.find_one.return_value = recommendation
-    mock_groq_client().chat.completions.create.return_value.choices[0].message.content = json.dumps({
-        "1": "Skiing in the Rockies",
-        "2": "Visit Niagara Falls",
-        "3": "Explore Quebec City"
-    })
+    mock_groq_client().chat.completions.create.return_value.choices[
+        0
+    ].message.content = json.dumps(
+        {
+            "1": "Skiing in the Rockies",
+            "2": "Visit Niagara Falls",
+            "3": "Explore Quebec City",
+        }
+    )
 
     await process_recommendation(uid, mock_db_recommendations)
 
@@ -109,10 +115,14 @@ async def test_consume(mock_db_recommendations, mock_kafka_consumer):
 
         await consume(mock_db_recommendations)
 
-        mock_process_recommendation.assert_awaited_once_with("test_uid", mock_db_recommendations)
+        mock_process_recommendation.assert_awaited_once_with(
+            "test_uid", mock_db_recommendations
+        )
 
     mock_kafka_consumer.assert_called_once_with(
-        "recommendations", bootstrap_servers="kafka:9092", group_id="recommendation_group"
+        "recommendations",
+        bootstrap_servers="kafka:9092",
+        group_id="recommendation_group",
     )
     mock_consumer_instance.start.assert_called_once()
     mock_consumer_instance.stop.assert_called_once()
@@ -124,7 +134,9 @@ async def test_consume_kafka_error(mock_db_recommendations, mock_kafka_consumer)
     Test Kafka connection error handling.
     """
     mock_consumer_instance = mock_kafka_consumer.return_value
-    mock_consumer_instance.start = AsyncMock(side_effect=KafkaConnectionError("Failed to connect"))
+    mock_consumer_instance.start = AsyncMock(
+        side_effect=KafkaConnectionError("Failed to connect")
+    )
     mock_consumer_instance.stop = AsyncMock()
 
     with pytest.raises(KafkaConnectionError):

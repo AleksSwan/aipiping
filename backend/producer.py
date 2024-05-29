@@ -3,8 +3,8 @@ from abc import ABC, abstractmethod
 
 from aiokafka import AIOKafkaProducer
 from aiokafka.errors import KafkaConnectionError, KafkaError
-from errors import ProducerConnectionError, ProducerError
 
+from errors import ProducerConnectionError, ProducerError
 from logger_configurator import LoggerConfigurator
 
 # Configure the logger

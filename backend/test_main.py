@@ -1,7 +1,9 @@
+from unittest.mock import AsyncMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock, patch
-from main import app, SUPPORTED_SEASONS
+
+from main import SUPPORTED_SEASONS, app
 from producer import AbstractProducer
 from repository import AbstractRecommendationRepository
 
@@ -19,7 +21,7 @@ def mock_producer():
     """
     Fixture to mock the producer.
     """
-    with patch('main.producer', new_callable=AsyncMock) as mock_producer:
+    with patch("main.producer", new_callable=AsyncMock) as mock_producer:
         yield mock_producer
 
 
@@ -28,7 +30,7 @@ def mock_db():
     """
     Fixture to mock the repository.
     """
-    with patch('main.db_recommendations', new_callable=AsyncMock) as mock_db:
+    with patch("main.db_recommendations", new_callable=AsyncMock) as mock_db:
         yield mock_db
 
 
@@ -37,7 +39,9 @@ async def test_create_recommendation(client, mock_producer, mock_db):
     """
     Test case for creating a recommendation.
     """
-    response = client.post('/recommendations', json={"country": "Canada", "season": "winter"})
+    response = client.post(
+        "/recommendations", json={"country": "Canada", "season": "winter"}
+    )
     assert response.status_code == 202
     data = response.json()
     assert "uid" in data
@@ -48,7 +52,9 @@ async def test_create_recommendation_invalid_country(client):
     """
     Test case for creating a recommendation with an invalid country.
     """
-    response = client.post('/recommendations', json={"country": "InvalidCountry", "season": "winter"})
+    response = client.post(
+        "/recommendations", json={"country": "InvalidCountry", "season": "winter"}
+    )
     assert response.status_code == 400
     data = response.json()
     assert data["detail"] == "Country 'InvalidCountry' is not found."
@@ -59,7 +65,9 @@ async def test_create_recommendation_invalid_season(client):
     """
     Test case for creating a recommendation with an invalid season.
     """
-    response = client.post('/recommendations', json={"country": "Canada", "season": "invalidSeason"})
+    response = client.post(
+        "/recommendations", json={"country": "Canada", "season": "invalidSeason"}
+    )
     assert response.status_code == 400
     data = response.json()
     assert data["detail"] == "Season 'invalidSeason' is not supported."
@@ -79,7 +87,7 @@ async def test_get_recommendation(client, mock_db):
         "recommendations": ["Skiing", "Ice skating", "Hot springs"],
     }
 
-    response = client.get(f'/recommendations/{uid}')
+    response = client.get(f"/recommendations/{uid}")
     assert response.status_code == 200
     data = response.json()
     assert data["uid"] == uid
@@ -95,7 +103,7 @@ async def test_get_recommendation_not_found(client, mock_db):
     uid = "non-existent-uid"
     mock_db.find_one.return_value = None
 
-    response = client.get(f'/recommendations/{uid}')
+    response = client.get(f"/recommendations/{uid}")
     assert response.status_code == 404
     data = response.json()
     assert data["detail"]["error"] == "UID not found"
@@ -112,7 +120,7 @@ async def test_get_recommendation_pending(client, mock_db):
         "status": "pending",
     }
 
-    response = client.get(f'/recommendations/{uid}')
+    response = client.get(f"/recommendations/{uid}")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "pending"
@@ -130,7 +138,7 @@ async def test_get_recommendation_error(client, mock_db):
         "status": "error",
     }
 
-    response = client.get(f'/recommendations/{uid}')
+    response = client.get(f"/recommendations/{uid}")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "error"
