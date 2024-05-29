@@ -17,7 +17,7 @@ def client():
 @pytest.fixture
 def mock_producer():
     """
-    Fixture to mock the Kafka producer.
+    Fixture to mock the producer.
     """
     with patch('main.producer', new_callable=AsyncMock) as mock_producer:
         yield mock_producer
@@ -26,7 +26,7 @@ def mock_producer():
 @pytest.fixture
 def mock_db():
     """
-    Fixture to mock the MongoDB repository.
+    Fixture to mock the repository.
     """
     with patch('main.db_recommendations', new_callable=AsyncMock) as mock_db:
         yield mock_db
