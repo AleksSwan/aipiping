@@ -102,16 +102,20 @@ async def test_consume(mock_db_recommendations, mock_kafka_consumer):
     mock_consumer_instance = mock_kafka_consumer.return_value
     mock_consumer_instance.start = AsyncMock()
     mock_consumer_instance.stop = AsyncMock()
-    mock_consumer_instance.__aiter__.return_value = [AsyncMock(value=b"1234")]
+    mock_consumer_instance.__aiter__.return_value = [AsyncMock(value=b"test_uid")]
 
-    await consume(mock_db_recommendations)
+    with patch("worker.process_recommendation") as mock_process_recommendation:
+        mock_process_recommendation.return_value = AsyncMock()
+
+        await consume(mock_db_recommendations)
+
+        mock_process_recommendation.assert_awaited_once_with("test_uid", mock_db_recommendations)
 
     mock_kafka_consumer.assert_called_once_with(
         "recommendations", bootstrap_servers="kafka:9092", group_id="recommendation_group"
     )
     mock_consumer_instance.start.assert_called_once()
     mock_consumer_instance.stop.assert_called_once()
-    mock_db_recommendations.update_one.assert_called()
 
 
 @pytest.mark.asyncio
