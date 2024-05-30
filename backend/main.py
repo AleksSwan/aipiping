@@ -95,7 +95,7 @@ async def create_recommendation(request: RecommendationRequest):
     try:
         # Validate country
         try:
-            country = pycountry.countries.search_fuzzy(request.country)[0].name
+            country = pycountry.countries.search_fuzzy(request.country)
             logger.info(f"Country '{request.country}' found: {country}")
         except LookupError:
             country = None
@@ -103,6 +103,17 @@ async def create_recommendation(request: RecommendationRequest):
             raise HTTPException(
                 status_code=400, detail=f"Country '{request.country}' is not found."
             )
+        elif len(country) > 1:
+            country_names = [c.name for c in country]
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Country '{request.country}' not found. Similar countries found: {', '.join(country_names)}. "
+                    "Please select the correct country."
+                ),
+            )
+        else:
+            country = country[0].name
 
         # Validate season
         if request.season not in SUPPORTED_SEASONS:

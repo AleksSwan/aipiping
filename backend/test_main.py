@@ -59,6 +59,13 @@ async def test_create_recommendation_invalid_country(client):
     data = response.json()
     assert data["detail"] == "Country 'InvalidCountry' is not found."
 
+    response = client.post(
+        "/recommendations", json={"country": "eng", "season": "winter"}
+    )
+    assert response.status_code == 400
+    data = response.json()
+    assert "Similar countries found" in data["detail"]
+
 
 @pytest.mark.asyncio
 async def test_create_recommendation_invalid_season(client):

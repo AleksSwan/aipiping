@@ -70,7 +70,7 @@ async def generate_recommendations(prompt: str) -> dict:
     except json.JSONDecodeError:
         logger.error(f"Failed to parse recommendations: {recoomendations}")
         recoomendations = {"1": recoomendations}
-    logger.info(f"Recommendations for {prompt}: {recoomendations}")
+    logger.info(f"Recommendations for [{prompt}]: {recoomendations}")
     return recoomendations
 
 
@@ -113,7 +113,8 @@ async def process_recommendation(
             # Generate recommendations
             country = recommendation.get("country")
             season = recommendation.get("season")
-            prompt = f"Give three things to do in {country} during {season}"
+            country_fuzzy_name = recommendation.get("country_fuzzy_name")
+            prompt = f"Give three things to do in {country_fuzzy_name} during {season}"
             recommendations = await generate_recommendations(prompt)
 
             # Calculate processing time
