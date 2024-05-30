@@ -8,7 +8,7 @@ from logger_configurator import LoggerConfigurator
 logger = LoggerConfigurator(name=__name__).configure()
 
 
-class AbstractRecommendationRepository(ABC):
+class RecommendationRepository(ABC):
     """
     Abstract base class for a recommendation repository.
     This class defines the interface that any concrete implementation of
@@ -22,7 +22,9 @@ class AbstractRecommendationRepository(ABC):
 
         :param filter: A dictionary specifying the filter criteria.
         """
-        pass
+        raise NotImplementedError(
+            "The find_one method must be implemented by subclasses of RecommendationRepository."
+        )
 
     @abstractmethod
     async def update_one(self, filter: dict, new_values: dict):
@@ -32,10 +34,24 @@ class AbstractRecommendationRepository(ABC):
         :param filter: A dictionary specifying the filter criteria.
         :param new_values: A dictionary specifying the new values to update.
         """
-        pass
+        raise NotImplementedError(
+            "The update_one method must be implemented by subclasses of RecommendationRepository."
+        )
+
+    @abstractmethod
+    async def insert_one(self, document: dict):
+        """
+        Abstract method to insert a single document into the collection.
+
+        :param document: A dictionary representing the document to insert.
+        :return: The result of the insert operation.
+        """
+        raise NotImplementedError(
+            "The insert_one method must be implemented by subclasses of RecommendationRepository."
+        )
 
 
-class MongoRepository(AbstractRecommendationRepository):
+class MongoRepository(RecommendationRepository):
     """
     Concrete implementation of AbstractRecommendationRepository using MongoDB.
     This class interacts with a MongoDB collection to perform CRUD operations.

@@ -23,14 +23,18 @@ class AbstractProducer(ABC):
         """
         Abstract method to start the producer.
         """
-        pass
+        raise NotImplementedError(
+            "The start method must be implemented by subclasses of AbstractProducer"
+        )
 
     @abstractmethod
     async def stop(self):
         """
         Abstract method to stop the producer.
         """
-        pass
+        raise NotImplementedError(
+            "The stop method must be implemented by subclasses of AbstractProducer"
+        )
 
     @abstractmethod
     async def send_and_wait(self, topic, message):
@@ -40,7 +44,9 @@ class AbstractProducer(ABC):
         :param topic: The topic to which the message will be sent.
         :param message: The message to be sent.
         """
-        pass
+        raise NotImplementedError(
+            "The send_and_wait method must be implemented by subclasses of AbstractProducer"
+        )
 
 
 class KafkaProducer(AbstractProducer):

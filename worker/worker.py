@@ -10,7 +10,7 @@ from aiokafka.errors import KafkaConnectionError, KafkaError
 from groq import AsyncGroq
 
 from logger_configurator import LoggerConfigurator
-from repository import AbstractRecommendationRepository, MongoRepository
+from repository import RecommendationRepository, MongoRepository
 
 # Configure the logger
 logger = LoggerConfigurator(name=__name__, log_file="worker.log").configure()
@@ -74,7 +74,7 @@ async def generate_recommendations(prompt: str) -> dict:
     return recoomendations
 
 
-async def consume(db_recommendations: AbstractRecommendationRepository):
+async def consume(db_recommendations: RecommendationRepository):
     """
     Consume messages from the Kafka topic and process recommendations.
 
@@ -95,7 +95,7 @@ async def consume(db_recommendations: AbstractRecommendationRepository):
 
 
 async def process_recommendation(
-    uid: str, db_recommendations: AbstractRecommendationRepository
+    uid: str, db_recommendations: RecommendationRepository
 ):
     """
     Process a single recommendation request by generating recommendations and updating the database.

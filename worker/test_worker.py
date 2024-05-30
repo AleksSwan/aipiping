@@ -6,8 +6,12 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from aiokafka.errors import KafkaConnectionError
 
-from worker import (consume, db_recommendations, generate_recommendations,
-                    process_recommendation)
+from worker import (
+    consume,
+    db_recommendations,
+    generate_recommendations,
+    process_recommendation,
+)
 
 
 @pytest.fixture
