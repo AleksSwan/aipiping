@@ -103,8 +103,14 @@ async def create_recommendation(request: RecommendationRequest):
             raise HTTPException(
                 status_code=400, detail=f"Country '{request.country}' is not found."
             )
-        elif len(country) > 1:
-            country_names = [c.name for c in country]
+
+        countries = {c.name.lower():c for c in country}
+        if len(country) == 1:
+            country = country[0].name
+        elif request.country.lower() in countries:
+            country = countries[request.country.lower()].name
+        else:
+            country_names = map(lambda c: c.name, country)
             raise HTTPException(
                 status_code=400,
                 detail=(
@@ -112,8 +118,6 @@ async def create_recommendation(request: RecommendationRequest):
                     "Please select the correct country."
                 ),
             )
-        else:
-            country = country[0].name
 
         # Validate season
         if request.season not in SUPPORTED_SEASONS:
