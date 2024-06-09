@@ -19,6 +19,9 @@ pytest = "*"
 pytest-asyncio = "*"
 httpx = "*"
 pytest-mock = "*"
+ruff = "*"
+mypy = "*"
+beanie = "*"
 
 [dev-packages]
 

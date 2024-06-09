@@ -6,7 +6,7 @@ class LoggerConfigurator:
         self.name = name
         self.level = level
         self.log_file = log_file
-        self.format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        self.format = "%(asctime)s | %(name)s [%(levelname)s] %(message)s"
 
     def configure(self):
         logger = logging.getLogger(self.name)

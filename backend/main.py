@@ -135,7 +135,7 @@ async def create_recommendation(request: RecommendationRequest):
             "status": "pending",
             "recommendations": [],
             "timestamp": datetime.utcnow(),
-            "country_fuzzy_name": country,
+            "country_fuzzy_name": country
         }
 
         # Store recommendation to MongoDB

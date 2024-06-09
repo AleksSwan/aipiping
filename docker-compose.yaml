@@ -60,7 +60,8 @@ services:
 
   worker:
     build:
-      context: ./worker
+      context: .
+      dockerfile: dockerfiles/Dockerfile.worker
     container_name: worker
     environment:
       GROQ_API_KEY: ${GROQ_API_KEY}

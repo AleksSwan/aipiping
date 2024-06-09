@@ -1,0 +1,15 @@
+FROM python:3.11.6-slim
+
+WORKDIR /worker
+
+COPY worker/requirements.txt .
+
+RUN pip install --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
+
+COPY worker/ .
+COPY shared/ /shared
+
+ENV PYTHONPATH="/:/worker"
+
+CMD ["python", "app/main.py"]
