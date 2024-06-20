@@ -203,9 +203,13 @@ def test_create_recommendation_success(
     assert "uid" in response.json()
 
 
-def test_create_recommendation_validation_error(client, mock_recommendation_service, test_request):
+def test_create_recommendation_validation_error(
+    client, mock_recommendation_service, test_request
+):
     mock_recommendation_service.create_recommendation = AsyncMock()
-    validation_error = ValidationError.from_exception_data("Invalid data", line_errors=[])
+    validation_error = ValidationError.from_exception_data(
+        "Invalid data", line_errors=[]
+    )
 
     mock_recommendation_service.create_recommendation.side_effect = validation_error
     response = client.post("/recommendations", json=test_request.model_dump())

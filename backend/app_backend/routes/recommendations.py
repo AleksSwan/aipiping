@@ -74,7 +74,7 @@ async def get_recommendation(
     try:
         recommendation = await recommendation_service.get_recommendation(uid)
         logger.debug(f"Got recommendation [{type(recommendation)}]: {recommendation}")
-        response: dict = RecommendationResponseModel(**recommendation).dict(
+        response: dict = RecommendationResponseModel(**recommendation).model_dump(
             exclude_none=True, exclude_unset=True, exclude_defaults=True
         )
         logger.debug(f"Response: {response}")
