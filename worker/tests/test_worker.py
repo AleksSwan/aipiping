@@ -5,12 +5,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from aiokafka.errors import KafkaConnectionError, KafkaError  # type: ignore
-from app.consumers.kafka_consumer import consume
-from app.main import AIOKafkaConsumer, db_recommendations, main
-from app.services.groq_service import GroqService
-from app.services.recommendation_service import RecommendationService
+from app_worker.consumers.kafka_consumer import consume
+from app_worker.main import AIOKafkaConsumer, db_recommendations, main
+from app_worker.services.groq_service import GroqService
+from app_worker.services.recommendation_service import RecommendationService
 
-from shared.exceptions.custom_exeptions import DatabaseConnectionError
+from shared.errors.repository_errors import DatabaseConnectionError
 
 
 @pytest.fixture
@@ -44,10 +44,10 @@ def mock_main_consume():
 @pytest.fixture
 def mock_kafka_consumer():
     """
-    Creates a mock object of the `AIOKafkaConsumer` class from the `app.main` module
+    Creates a mock object of the `AIOKafkaConsumer` class from the `app_worker.main` module
     using the `patch` context manager.
     """
-    with patch("app.main.AIOKafkaConsumer", autospec=True) as mock_consumer:
+    with patch("app_worker.main.AIOKafkaConsumer", autospec=True) as mock_consumer:
         yield mock_consumer
 
 
@@ -56,7 +56,9 @@ def mock_groq_client():
     """
     Creates a mock Groq client.
     """
-    with patch("app.services.groq_service.GroqService", autospec=True) as mock_client:
+    with patch(
+        "app_worker.services.groq_service.GroqService", autospec=True
+    ) as mock_client:
         mock_chat = AsyncMock()
         mock_client.chat = mock_chat
         mock_create = AsyncMock()

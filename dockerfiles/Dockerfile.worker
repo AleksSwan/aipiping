@@ -12,4 +12,4 @@ COPY shared/ /shared
 
 ENV PYTHONPATH="/:/worker"
 
-CMD ["python", "app/main.py"]
+CMD ["python", "app_worker/main.py"]

@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from typing import List, Optional, Type, Union
 
 from beanie import Document, View, init_beanie
@@ -7,60 +6,12 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import ValidationError
 from pymongo.errors import OperationFailure, PyMongoError
 
-from shared.exceptions.custom_exeptions import DatabaseConnectionError
-from shared.models.recommendations import Recommendation
-from shared.utils.logger_configurator import LoggerConfigurator
+from shared.errors.repository_errors import DatabaseConnectionError, RepositoryError
+from shared.models.recommendations import RecommendationModel
+from shared.repositories.abstract_repository import RecommendationBaseRepository
+from shared.utils.logger_utils import LoggerConfigurator
 
-logger = LoggerConfigurator(name=__name__).configure()
-
-
-class RecommendationBaseRepository(ABC):
-    """
-    Abstract base class for a recommendation repository.
-    This class defines the interface that any concrete implementation of
-    a recommendation repository must implement.
-    """
-
-    @abstractmethod
-    async def initialize(self):
-        raise NotImplementedError(
-            "The initialize method must be implemented by subclasses of RecommendationRepository."
-        )
-
-    @abstractmethod
-    async def find_one(self, filter_dict: dict, *args, **kwargs):
-        """
-        Abstract method to find a single document based on a filter.
-
-        :param filter: A dictionary specifying the filter criteria.
-        """
-        raise NotImplementedError(
-            "The find_one method must be implemented by subclasses of RecommendationRepository."
-        )
-
-    @abstractmethod
-    async def update_one(self, filter_dict: dict, new_values_dict: dict):
-        """
-        Abstract method to update a single document based on a filter.
-
-        :param filter: A dictionary specifying the filter criteria.
-        :param new_values: A dictionary specifying the new values to update.
-        """
-        raise NotImplementedError(
-            "The update_one method must be implemented by subclasses of RecommendationRepository."
-        )
-
-    @abstractmethod
-    async def insert_one(self, document: dict):
-        """
-        Abstract method to insert a single document into the collection.
-
-        :param document: A dictionary representing the document to insert.
-        :return: The result of the insert operation.
-        """
-        raise NotImplementedError(
-            "The insert_one method must be implemented by subclasses of RecommendationRepository."
-        )
+logger = LoggerConfigurator(name="repository-recommendation").configure()
 
 
 class MongoRepository(RecommendationBaseRepository):
@@ -69,7 +20,7 @@ class MongoRepository(RecommendationBaseRepository):
         db_uri: str = "mongodb://mongodb:27017",
         db_name: str = "travel_recommendations",
         document_models: Union[List[Type[Document] | Type[View] | str] | None] = [
-            Recommendation
+            RecommendationModel
         ],
     ):
         self.client: AgnosticClient = AsyncIOMotorClient(db_uri)
@@ -86,9 +37,9 @@ class MongoRepository(RecommendationBaseRepository):
             ) from error
         logger.info("Initialized the beanie database")
 
-    async def find_one(self, filter_dict: dict, *args, **kwargs) -> Optional[dict]:
+    async def find_one(self, filter_dict: dict) -> Optional[dict]:
         try:
-            find_result = await Recommendation.find_one(filter_dict, *args, **kwargs)
+            find_result = await RecommendationModel.find_one(filter_dict)
             return dict(find_result) if find_result else None
         except ValidationError as e:
             logger.error(f"Validation Error: {e}")
@@ -104,9 +55,9 @@ class MongoRepository(RecommendationBaseRepository):
 
     async def update_one(
         self, filter_dict: dict, update_dict: dict
-    ) -> Optional[Recommendation]:
+    ) -> Optional[RecommendationModel]:
         try:
-            recommendation = await Recommendation.find_one(filter_dict)
+            recommendation = await RecommendationModel.find_one(filter_dict)
             if recommendation:
                 await recommendation.update(update_dict)
                 return recommendation
@@ -116,15 +67,25 @@ class MongoRepository(RecommendationBaseRepository):
             logger.error(f"Error while updating document: {error}")
         return None
 
-    async def insert_one(self, document: dict) -> Optional[Recommendation]:
+    async def insert_one(self, document: dict) -> Optional[RecommendationModel]:
         try:
-            recommendation = Recommendation(**document)
+            recommendation = RecommendationModel(**document)
             await recommendation.insert()
             return recommendation
         except OperationFailure as e:
             logger.error(f"Connection error while inserting document: {e}")
+            raise RepositoryError() from e
         except PyMongoError as e:
             logger.error(f"General PyMongoError while inserting document: {e}")
+            raise RepositoryError() from e
         except Exception as e:
             logger.error(f"Unexpected error while inserting document: {e}")
+            raise RepositoryError() from e
         return None
+
+    async def disconnect(self):
+        """Disconnects from the database."""
+        if self.client is None:
+            raise RepositoryError("Client not set")
+        self.client.close()
+        logger.info("Disconnected from the database")

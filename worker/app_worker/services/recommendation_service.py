@@ -1,13 +1,13 @@
 from asyncio import Semaphore
 from datetime import datetime
 
-from app.services.groq_service import GroqService
+from app_worker.services.groq_service import GroqService
 
-from shared.repositories.recoomendations import RecommendationBaseRepository
-from shared.utils.logger_configurator import LoggerConfigurator
+from shared.repositories.abstract_repository import RecommendationBaseRepository
+from shared.utils.logger_utils import LoggerConfigurator
 
 # Configure the logger
-logger = LoggerConfigurator(name="recommendation_service").configure()
+logger = LoggerConfigurator(name="recommendation-service").configure()
 
 
 class RecommendationService:

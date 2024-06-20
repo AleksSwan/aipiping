@@ -6,10 +6,10 @@ from groq.types.chat import (
     ChatCompletionUserMessageParam,
 )
 
-from shared.utils.logger_configurator import LoggerConfigurator
+from shared.utils.logger_utils import LoggerConfigurator
 
 # Configure the logger
-logger = LoggerConfigurator(name="groq_service").configure()
+logger = LoggerConfigurator(name="groq-service").configure()
 
 
 class GroqService:

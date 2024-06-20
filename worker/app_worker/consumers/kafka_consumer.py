@@ -1,13 +1,13 @@
 from asyncio import Semaphore
 
 from aiokafka import AIOKafkaConsumer  # type: ignore
-from app.services.groq_service import GroqService
-from app.services.recommendation_service import RecommendationService
+from app_worker.services.groq_service import GroqService
+from app_worker.services.recommendation_service import RecommendationService
 
-from shared.repositories.recoomendations import RecommendationBaseRepository
-from shared.utils.logger_configurator import LoggerConfigurator
+from shared.repositories.abstract_repository import RecommendationBaseRepository
+from shared.utils.logger_utils import LoggerConfigurator
 
-logger = LoggerConfigurator(name="kafka_consumer").configure()
+logger = LoggerConfigurator(name="kafka-consumer").configure()
 
 
 async def consume(

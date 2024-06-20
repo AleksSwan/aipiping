@@ -3,29 +3,27 @@ from asyncio import Semaphore
 
 from aiokafka import AIOKafkaConsumer  # type: ignore
 from aiokafka.errors import KafkaConnectionError, KafkaError  # type: ignore
-from app.consumers.kafka_consumer import consume
-from app.services.groq_service import GroqService
-from app.services.recommendation_service import RecommendationService
+from app_worker.consumers.kafka_consumer import consume
+from app_worker.services.groq_service import GroqService
+from app_worker.services.recommendation_service import RecommendationService
 
-from shared.exceptions.custom_exeptions import DatabaseConnectionError
-from shared.repositories.recoomendations import (
-    MongoRepository,
-    RecommendationBaseRepository,
-)
-from shared.utils.logger_configurator import LoggerConfigurator
+from shared.errors.repository_errors import DatabaseConnectionError
+from shared.repositories.abstract_repository import RecommendationBaseRepository
+from shared.repositories.mongo_repository import MongoRepository
+from shared.utils.logger_utils import LoggerConfigurator
 
 # Configure the logger
-logger = LoggerConfigurator(name=__name__, log_file="worker.log").configure()
+logger = LoggerConfigurator(name="app-worker", log_file="app-worker.log").configure()
 
 
-db_recommendations = MongoRepository(
+db_recommendations: RecommendationBaseRepository = MongoRepository(
     db_uri="mongodb://mongodb:27017",
     db_name="travel_recommendations",
 )
 
-groq_service = GroqService()
+groq_service: GroqService = GroqService()
 
-recommendator = RecommendationService(
+recommendator: RecommendationService = RecommendationService(
     db_recommendations=db_recommendations,
     groq_service=groq_service,
 )
