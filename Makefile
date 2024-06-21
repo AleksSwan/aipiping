@@ -10,7 +10,8 @@ show_paths:
 	@echo $(PYTHONPATH)
 
 test:
-	$(PYTHON) -m pytest
+	$(PYTHON) -m pytest $(BACKEND)/tests/ -v
+	$(PYTHON) -m pytest $(WORKER)/tests/ -v
 
 test_worker:
 	$(PYTHON) -m pytest $(WORKER)/tests/ -v
