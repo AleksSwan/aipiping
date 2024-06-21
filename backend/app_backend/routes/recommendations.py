@@ -8,7 +8,10 @@ from pydantic import ValidationError
 from shared.errors.backend_errors import CreateRecommendationError, UIDNotFoundError
 from shared.errors.producer_errors import ProducerError
 from shared.errors.repository_errors import RepositoryError
-from shared.models.recommendations import RecommendationResponseModel
+from shared.models.recommendations import (
+    RecommendationResponseModel,
+    RecommendationStatusResponseModel,
+)
 from shared.models.recommendations_requests import RecommendationRequest
 from shared.utils.logger_utils import LoggerConfigurator
 
@@ -77,6 +80,51 @@ async def get_recommendation(
         response: dict = RecommendationResponseModel(**recommendation).model_dump(
             exclude_none=True, exclude_unset=True, exclude_defaults=True
         )
+        logger.debug(f"Response: {response}")
+        return response
+    except RepositoryError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+    except UIDNotFoundError:
+        detail = {
+            "error": "UID not found",
+            "message": "The provided UID does not exist. Please check the UID and try again.",
+        }
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
+    except Exception as e:
+        logger.error(f"Error getting recommendation: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal Server Error",
+        )
+
+
+@router.get("/{uid}/status")
+async def get_recommendation_status(
+    uid: str,
+    recommendation_service: Annotated[
+        RecommendationService, Depends(get_recommendation_service)
+    ],
+    response_model=RecommendationStatusResponseModel,
+) -> dict:
+    """
+    Endpoint to retrieve a recommendation by UID.
+
+    :param uid: Unique identifier for the recommendation.
+    :return: JSON response with the recommendation data.
+    """
+    try:
+        recommendation_status = await recommendation_service.get_recommendation_status(
+            uid
+        )
+        logger.debug(
+            f"Got recommendation [{type(recommendation_status)}]: {recommendation_status}"
+        )
+        response: dict = RecommendationStatusResponseModel(
+            **recommendation_status
+        ).model_dump()
         logger.debug(f"Response: {response}")
         return response
     except RepositoryError:

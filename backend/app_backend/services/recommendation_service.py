@@ -154,3 +154,37 @@ class RecommendationService(metaclass=Singleton):
                 }
         logger.info(f"Retrieved recommendation for UID {uid}")
         return recommendation
+
+    async def get_recommendation_status(self, uid: str) -> dict:
+        if self.repository is None:
+            raise RepositoryError("Repository not set")
+        try:
+            logger.info(f"Retrieving recommendation for UID {uid}")
+            recommendation = await self.repository.find_one(
+                filter_dict={"uid": uid},
+            )
+        except Exception as e:
+            logger.error(f"Error retrieving recommendation: {e}")
+            raise RepositoryError("Error retrieving recommendation")
+        else:
+            if not recommendation:
+                logger.warning(f"Recommendation with UID {uid} not found")
+                raise UIDNotFoundError()
+            elif recommendation["status"] == "pending":
+                logger.info(f"Recommendation with UID {uid} is still pending")
+                recommendation = {
+                    "uid": uid,
+                    "status": "pending",
+                    "message": "The recommendations are not yet available. Please try again later.",
+                }
+            elif recommendation["status"] == "error":
+                logger.error(
+                    f"Error occurred while processing recommendation with UID {uid}"
+                )
+                recommendation = {
+                    "uid": uid,
+                    "status": "error",
+                    "message": "An error occurred while processing your request. Please try again later.",
+                }
+        logger.info(f"Retrieved recommendation for UID {uid}")
+        return recommendation

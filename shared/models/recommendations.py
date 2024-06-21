@@ -20,3 +20,9 @@ class RecommendationResponseModel(BaseModel):
     recommendations: Optional[list] = Field(default_factory=list)
     error: Optional[str] = None
     message: Optional[str] = None
+
+
+class RecommendationStatusResponseModel(BaseModel):
+    uid: str
+    status: str
+    message: str = "No additional information available"
