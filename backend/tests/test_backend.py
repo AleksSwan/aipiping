@@ -158,8 +158,29 @@ async def test_get_recommendation_not_found(client, mock_recommendation_service)
     assert data["detail"]["error"] == "UID not found"
 
 
+@pytest.mark.parametrize("data_status", ["pending", "error"])
 @pytest.mark.asyncio
-async def test_get_recommendation_pending(client, mock_db, mock_recommendation_service):
+async def test_get_recommendation_not_found_by_status(client, mock_recommendation_service, data_status):
+    """
+    Test case for retrieving a recommendation that does not exist.
+    """
+    uid = "non-existent-uid"
+    return_value = {
+        "uid": uid,
+        "country": "Canada",
+        "season": "winter",
+        "status": data_status,
+        "recommendations": ["Skiing", "Ice skating", "Hot springs"],
+    }
+    mock_recommendation_service.repository.find_one.return_value = return_value
+    response = client.get(f"/recommendations/{uid}")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    data = response.json()
+    assert data["detail"]["error"] == "UID not found"
+
+
+@pytest.mark.asyncio
+async def test_get_recommendation_status_pending(client, mock_db, mock_recommendation_service):
     """
     Test case for retrieving a pending recommendation.
     """
@@ -169,7 +190,7 @@ async def test_get_recommendation_pending(client, mock_db, mock_recommendation_s
         "status": "pending",
     }
 
-    response = client.get(f"/recommendations/{uid}")
+    response = client.get(f"/recommendations/{uid}/status")
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert data["status"] == "pending"
@@ -178,7 +199,7 @@ async def test_get_recommendation_pending(client, mock_db, mock_recommendation_s
 
 
 @pytest.mark.asyncio
-async def test_get_recommendation_error(client, mock_db, mock_recommendation_service):
+async def test_get_recommendation_status_error(client, mock_db, mock_recommendation_service):
     """
     Test case for retrieving a recommendation that encountered an error.
     """
@@ -188,7 +209,7 @@ async def test_get_recommendation_error(client, mock_db, mock_recommendation_ser
         "status": "error",
     }
 
-    response = client.get(f"/recommendations/{uid}")
+    response = client.get(f"/recommendations/{uid}/status")
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert data["status"] == "error"
