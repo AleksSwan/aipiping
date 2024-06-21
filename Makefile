@@ -16,6 +16,9 @@ test_worker:
 test_backend:
 	$(PYTHON) -m pytest $(BACKEND)/tests/ -v
 
+run:
+	sudo docker-compose up --remove-orphans --build
+
 run_worker:
 	$(PYTHON) $(WORKER)/app_$(WORKER)/main.py
 
