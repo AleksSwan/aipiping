@@ -102,7 +102,9 @@ async def get_recommendation(
             "error": "Task not completed",
             "message": "Recommendation info for provided UID not fetched yet.",
         }
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail
+        )
     except Exception as e:
         logger.error(f"Error getting recommendation: {e}")
         raise HTTPException(
