@@ -159,12 +159,12 @@ class RecommendationService(metaclass=Singleton):
         if self.repository is None:
             raise RepositoryError("Repository not set")
         try:
-            logger.info(f"Retrieving recommendation for UID {uid}")
+            logger.info(f"Retrieving recommendation status for UID {uid}")
             recommendation = await self.repository.find_one(
                 filter_dict={"uid": uid},
             )
         except Exception as e:
-            logger.error(f"Error retrieving recommendation: {e}")
+            logger.error(f"Error retrieving recommendation status: {e}")
             raise RepositoryError("Error retrieving recommendation")
         else:
             if not recommendation:
