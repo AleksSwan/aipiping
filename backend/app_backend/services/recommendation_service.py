@@ -133,25 +133,9 @@ class RecommendationService(metaclass=Singleton):
             logger.error(f"Error retrieving recommendation: {e}")
             raise RepositoryError("Error retrieving recommendation")
         else:
-            if not recommendation:
-                logger.warning(f"Recommendation with UID {uid} not found")
+            if not recommendation or recommendation["status"] != "completed":
+                logger.warning(f"Recommendation info with UID {uid} not found")
                 raise UIDNotFoundError()
-            elif recommendation["status"] == "pending":
-                logger.info(f"Recommendation with UID {uid} is still pending")
-                recommendation = {
-                    "uid": uid,
-                    "status": "pending",
-                    "message": "The recommendations are not yet available. Please try again later.",
-                }
-            elif recommendation["status"] == "error":
-                logger.error(
-                    f"Error occurred while processing recommendation with UID {uid}"
-                )
-                recommendation = {
-                    "uid": uid,
-                    "status": "error",
-                    "message": "An error occurred while processing your request. Please try again later.",
-                }
         logger.info(f"Retrieved recommendation for UID {uid}")
         return recommendation
 

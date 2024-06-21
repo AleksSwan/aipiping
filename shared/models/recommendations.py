@@ -13,13 +13,11 @@ class RecommendationModel(Document, RecommendationSchema):
 
 
 class RecommendationResponseModel(BaseModel):
-    uid: Optional[str]
-    country: Optional[str] = None
-    season: Optional[str] = None
-    status: Optional[str]
+    uid: str
+    country: str
+    season: str
+    status: str
     recommendations: Optional[list] = Field(default_factory=list)
-    error: Optional[str] = None
-    message: Optional[str] = None
 
 
 class RecommendationStatusResponseModel(BaseModel):
