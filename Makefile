@@ -2,13 +2,15 @@ PYTHON=python
 WORKER=worker
 SHARED=shared
 BACKEND=backend
-PIP=$(PYTHON) -m pip
 export PYTHONPATH := $(PWD):$(PWD)/shared:$(PWD)/worker:$(PWD)/backend
 .PHONY: install test run lint
 
 # Targets
 show_paths:
 	@echo $(PYTHONPATH)
+
+test:
+	$(PYTHON) -m pytest
 
 test_worker:
 	$(PYTHON) -m pytest $(WORKER)/tests/ -v
