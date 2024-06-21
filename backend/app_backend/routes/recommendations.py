@@ -5,7 +5,11 @@ from app_backend.services.recommendation_service import RecommendationService
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import ValidationError
 
-from shared.errors.backend_errors import CreateRecommendationError, UIDNotFoundError
+from shared.errors.backend_errors import (
+    CreateRecommendationError,
+    TaskNotCompletedError,
+    UIDNotFoundError,
+)
 from shared.errors.producer_errors import ProducerError
 from shared.errors.repository_errors import RepositoryError
 from shared.models.recommendations import (
@@ -91,6 +95,12 @@ async def get_recommendation(
         detail = {
             "error": "UID not found",
             "message": "The provided UID does not exist. Please check the UID and try again.",
+        }
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
+    except TaskNotCompletedError:
+        detail = {
+            "error": "Task not completed",
+            "message": "Recommendation info for provided UID not fetched yet.",
         }
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
     except Exception as e:

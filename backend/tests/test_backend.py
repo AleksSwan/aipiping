@@ -160,7 +160,9 @@ async def test_get_recommendation_not_found(client, mock_recommendation_service)
 
 @pytest.mark.parametrize("data_status", ["pending", "error"])
 @pytest.mark.asyncio
-async def test_get_recommendation_not_found_by_status(client, mock_recommendation_service, data_status):
+async def test_get_recommendation_not_found_by_status(
+    client, mock_recommendation_service, data_status
+):
     """
     Test case for retrieving a recommendation that does not exist.
     """
@@ -176,11 +178,13 @@ async def test_get_recommendation_not_found_by_status(client, mock_recommendatio
     response = client.get(f"/recommendations/{uid}")
     assert response.status_code == status.HTTP_404_NOT_FOUND
     data = response.json()
-    assert data["detail"]["error"] == "UID not found"
+    assert data["detail"]["error"] == "Task not completed"
 
 
 @pytest.mark.asyncio
-async def test_get_recommendation_status_pending(client, mock_db, mock_recommendation_service):
+async def test_get_recommendation_status_pending(
+    client, mock_db, mock_recommendation_service
+):
     """
     Test case for retrieving a pending recommendation.
     """
@@ -199,7 +203,9 @@ async def test_get_recommendation_status_pending(client, mock_db, mock_recommend
 
 
 @pytest.mark.asyncio
-async def test_get_recommendation_status_error(client, mock_db, mock_recommendation_service):
+async def test_get_recommendation_status_error(
+    client, mock_db, mock_recommendation_service
+):
     """
     Test case for retrieving a recommendation that encountered an error.
     """

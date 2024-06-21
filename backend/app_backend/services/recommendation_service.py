@@ -6,7 +6,11 @@ from app_backend.producers.abstract_producer import AbstractProducer
 from pycountry.db import Country
 from pymongo.errors import PyMongoError
 
-from shared.errors.backend_errors import CreateRecommendationError, UIDNotFoundError
+from shared.errors.backend_errors import (
+    CreateRecommendationError,
+    TaskNotCompletedError,
+    UIDNotFoundError,
+)
 from shared.errors.producer_errors import ProducerError
 from shared.errors.repository_errors import RepositoryError
 from shared.models.recommendations_requests import RecommendationRequest
@@ -133,9 +137,12 @@ class RecommendationService(metaclass=Singleton):
             logger.error(f"Error retrieving recommendation: {e}")
             raise RepositoryError("Error retrieving recommendation")
         else:
-            if not recommendation or recommendation["status"] != "completed":
+            if not recommendation:
                 logger.warning(f"Recommendation info with UID {uid} not found")
                 raise UIDNotFoundError()
+            elif recommendation["status"] != "completed":
+                logger.warning(f"Recommendation info with UID {uid} not fetched yet")
+                raise TaskNotCompletedError()
         logger.info(f"Retrieved recommendation for UID {uid}")
         return recommendation
 

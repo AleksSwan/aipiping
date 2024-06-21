@@ -20,3 +20,11 @@ class CreateRecommendationError(CustomError):
         self.message = message
         self.details = details
         super().__init__(self.message)
+
+class TaskNotCompletedError(CustomError):
+    """Exception raised for uid not found."""
+
+    def __init__(self, message="Task not completed", details=None):
+        self.message = message
+        self.details = details
+        super().__init__(self.message)
